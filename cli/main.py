@@ -36,6 +36,11 @@ def silence(func):
     return wrapper
 
 
+def print_yaml(yaml):
+    for k in yaml:
+        print '%s:%s' % (k, str(yaml[k]))
+
+
 class Cli(cmd.Cmd):
     def __init__(self):
         try:
@@ -93,9 +98,7 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_stats(self, line):
-        stats = self.client.stats()
-        for k in stats:
-            print '%s:%s' % (k, str(stats[k]))
+        print_yaml(self.client.stats())
 
     @silence
     def do_tubes(self, line):
@@ -119,9 +122,7 @@ class Cli(cmd.Cmd):
     @silence
     def do_stats_tube(self, line):
         tube = self.client.using() if line == '' else line
-        stats = self.client.stats_tube(tube)
-        for k in stats:
-            print '%s:%s' % (k, str(stats[k]))
+        print_yaml(self.client.stats_tube(tube))
 
     @silence
     def do_watch(self, line):
@@ -160,18 +161,63 @@ class Cli(cmd.Cmd):
             return
         self.job = job
         self._refresh_prompt()
-        stats = job.stats()
-        for k in stats:
-            print '%s:%s' % (k, str(stats[k]))
+        print_yaml(job.stats())
 
     @silence
     def do_stats_job(self, line):
         if self.job is not None:
-            stats = self.job.stats()
-            for k in stats:
-                print '%s:%s' % (k, str(stats[k]))
+            print_yaml(self.job.stats())
         else:
             print 'No job reserved now'
+
+    @silence
+    def do_peek(self, line):
+        job = self.client.peek(int(line))
+        if job is None:
+            print 'No such job'
+            return
+        print_yaml(job.stats())
+
+    @silence
+    def do_peek_ready(self, line):
+        job = self.client.peek_ready()
+        if job is None:
+            print 'No job ready now'
+            return
+        print_yaml(job.stats())
+
+    @silence
+    def do_peek_delayed(self, line):
+        job = self.client.peek_delayed()
+        if job is None:
+            print 'No job delayed now'
+            return
+        print_yaml(job.stats())
+
+    @silence
+    def do_peek_buried(self, line):
+        job = self.client.peek_buried()
+        if job is None:
+            print 'No job buried now'
+            return
+        print_yaml(job.stats())
+
+    @silence
+    def do_clear_buried(self, line):
+        yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.watching()))
+        if not yes == 'y':
+            return
+        total = 0
+        while True:
+            job = self.client.peek_buried()
+            if job is None:
+                break
+            job.delete()
+            total += 1
+        if total > 0:
+            print 'OK, %d buried jobs cleared!' % total
+        else:
+            print 'No buried jobs to be cleared now'
 
 
 def main():
