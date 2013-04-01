@@ -109,10 +109,34 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_stats_tube(self, line):
-        tube = self.client.using() if line.strip() == '' else line.strip()
+        tube = self.client.using() if line == '' else line
         stats = self.client.stats_tube(tube)
         for k in stats:
             print '%s:%s' % (k, str(stats[k]))
+
+    @silence
+    def do_watch(self, line):
+        self.client.watch(line)
+        print 'OK, Current watching:', ','.join(self.client.watching())
+
+    def complete_watch(self, text, line, begidx, endidx):
+        return self.complete_use(text, line, begidx, endidx)
+
+    @silence
+    def do_ignore(self, line):
+        self.client.ignore(line)
+        print 'OK, Current watching:', ','.join(self.client.watching())
+
+    def complete_ignore(self, text, line, begidx, endidx):
+        tubes = self.client.watching()
+        if text:
+            return [t for t in tubes if t.startswith(text)]
+        else:
+            return tubes
+
+    @silence
+    def do_watching(self, line):
+        print ','.join(self.client.watching())
 
 
 def main():
