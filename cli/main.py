@@ -204,7 +204,7 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_clear_buried(self, line):
-        yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.watching()))
+        yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.using()))
         if not yes == 'y':
             return
         total = 0
