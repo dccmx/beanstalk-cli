@@ -44,7 +44,16 @@ class Cli(cmd.Cmd):
             print str(e)
             sys.exit(-1)
         cmd.Cmd.__init__(self)
-        self.prompt = 'beanstalk %s:%d (%s)> ' % (args.host, args.port, self.client.using())
+        self.job = None
+        self._refresh_prompt()
+
+    def _refresh_prompt(self):
+        prompt = 'beanstalk %s:%d' % (args.host, args.port)
+        if self.job is not None:
+            prompt += ' (%s:%d)' % (self.client.using(), self.job.jid)
+        else:
+            prompt += ' (%s)' % self.client.using()
+        self.prompt = prompt + '> '
 
     def do_hist(self, args):
         print(self._hist)
@@ -97,8 +106,8 @@ class Cli(cmd.Cmd):
     @silence
     def do_use(self, line):
         self.client.use(line)
+        self._refresh_prompt()
         print 'OK'
-        self.prompt = 'beanstalk %s:%d (%s)> ' % (args.host, args.port, self.client.using())
 
     def complete_use(self, text, line, begidx, endidx):
         tubes = self.client.tubes()
@@ -137,6 +146,32 @@ class Cli(cmd.Cmd):
     @silence
     def do_watching(self, line):
         print ','.join(self.client.watching())
+
+    @silence
+    def do_put(self, line):
+        print self.client.put(line)
+
+    @silence
+    def do_reserve(self, line):
+        timeout = None if line == '' else float(line)
+        job = self.client.reserve(timeout)
+        if job is None:
+            print 'No job now'
+            return
+        self.job = job
+        self._refresh_prompt()
+        stats = job.stats()
+        for k in stats:
+            print '%s:%s' % (k, str(stats[k]))
+
+    @silence
+    def do_stats_job(self, line):
+        if self.job is not None:
+            stats = self.job.stats()
+            for k in stats:
+                print '%s:%s' % (k, str(stats[k]))
+        else:
+            print 'No job reserved now'
 
 
 def main():
