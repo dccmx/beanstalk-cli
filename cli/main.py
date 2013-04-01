@@ -44,7 +44,7 @@ class Cli(cmd.Cmd):
             print str(e)
             sys.exit(-1)
         cmd.Cmd.__init__(self)
-        self.prompt = 'beanstalk %s:%d> ' % (args.host, args.port)
+        self.prompt = 'beanstalk %s:%d (%s)> ' % (args.host, args.port, self.client.using())
 
     def do_hist(self, args):
         print(self._hist)
@@ -62,8 +62,6 @@ class Cli(cmd.Cmd):
     def preloop(self):
         cmd.Cmd.preloop(self)
         self._hist = []
-        self._locals = {}
-        self._globals = {}
 
     def postloop(self):
         cmd.Cmd.postloop(self)
@@ -88,7 +86,7 @@ class Cli(cmd.Cmd):
     def do_stats(self, line):
         stats = self.client.stats()
         for k in stats:
-            print '%s:%d' % (k, stats[k])
+            print '%s:%s' % (k, str(stats[k]))
 
     @silence
     def do_tubes(self, line):
@@ -108,6 +106,13 @@ class Cli(cmd.Cmd):
             return [t for t in tubes if t.startswith(text)]
         else:
             return tubes
+
+    @silence
+    def do_stats_tube(self, line):
+        tube = self.client.using() if line.strip() == '' else line.strip()
+        stats = self.client.stats_tube(tube)
+        for k in stats:
+            print '%s:%s' % (k, str(stats[k]))
 
 
 def main():
