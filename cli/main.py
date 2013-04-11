@@ -37,7 +37,7 @@ def silence(func):
 
 
 def print_yaml(yaml):
-    for k in yaml:
+    for k in sorted(yaml.keys()):
         print '%s:%s' % (k, str(yaml[k]))
 
 
@@ -170,6 +170,13 @@ class Cli(cmd.Cmd):
         else:
             print 'No job reserved now'
 
+    '''
+    peek <id>\r\n - return job <id>.
+    peek-ready\r\n - return the next ready job.
+    peek-delayed\r\n - return the delayed job with the shortest delay left.
+    peek-buried\r\n - return the next job in the list of buried jobs.
+    All but the first operate only on the currently used tube.
+    '''
     @silence
     def do_peek(self, line):
         job = self.client.peek(int(line))
