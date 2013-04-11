@@ -244,7 +244,7 @@ class Cli(cmd.Cmd):
             yes = raw_input('Clear all %s jobs in %s now? (y/N)' % (name, self.client.using()))
             if not yes == 'y':
                 return
-            total = self._clear_all(self.client.using(), self.client.peek_job)
+            total = self._clear_all(self.client.using(), peek_job)
         else:
             force = False
             if len(args) >= 1:
@@ -255,7 +255,7 @@ class Cli(cmd.Cmd):
                 yes = raw_input('Clear all %s jobs in %s now? (y/N)' % (name, tube))
                 if not yes == 'y':
                     return
-            total = self._clear_all(tube, self.client.peek_job)
+            total = self._clear_all(tube, peek_job)
         if total > 0:
             print 'OK, %d %s jobs cleared!' % (total, name)
         else:
