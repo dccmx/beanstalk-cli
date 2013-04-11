@@ -104,7 +104,13 @@ class Cli(cmd.Cmd):
     def do_tubes(self, line):
         tubes = self.client.tubes()
         for t in tubes:
-            print t
+            tube_stat = self.client.stats_tube(t)
+            ts = '(buried: %d, delayed: %d, ready: %d, reserved: %d, urgent: %d)' % (tube_stat['current-jobs-buried'],
+                                                                                     tube_stat['current-jobs-delayed'],
+                                                                                     tube_stat['current-jobs-ready'],
+                                                                                     tube_stat['current-jobs-reserved'],
+                                                                                     tube_stat['current-jobs-urgent'])
+            print t, ts
 
     @silence
     def do_use(self, line):
