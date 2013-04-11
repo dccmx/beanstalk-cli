@@ -60,6 +60,14 @@ class Cli(cmd.Cmd):
             prompt += ' (%s)' % self.client.using()
         self.prompt = prompt + '> '
 
+    @property
+    def tubes(self):
+        return sorted(self.client.tubes())
+
+    @property
+    def watching(self):
+        return sorted(self.client.watching())
+
     def do_hist(self, args):
         print(self._hist)
 
@@ -102,8 +110,7 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_tubes(self, line):
-        tubes = self.client.tubes()
-        for t in tubes:
+        for t in self.tubes:
             tube_stat = self.client.stats_tube(t)
             ts = '(buried: %d, delayed: %d, ready: %d, reserved: %d, urgent: %d)' % (tube_stat['current-jobs-buried'],
                                                                                      tube_stat['current-jobs-delayed'],
@@ -119,7 +126,7 @@ class Cli(cmd.Cmd):
         print 'OK'
 
     def complete_use(self, text, line, begidx, endidx):
-        tubes = self.client.tubes()
+        tubes = self.tubes
         if text:
             return [t for t in tubes if t.startswith(text)]
         else:
@@ -133,7 +140,7 @@ class Cli(cmd.Cmd):
     @silence
     def do_watch(self, line):
         self.client.watch(line)
-        print 'OK, Current watching:', ','.join(self.client.watching())
+        print 'OK, Current watching:', ','.join(self.watching)
 
     def complete_watch(self, text, line, begidx, endidx):
         return self.complete_use(text, line, begidx, endidx)
@@ -141,10 +148,10 @@ class Cli(cmd.Cmd):
     @silence
     def do_ignore(self, line):
         self.client.ignore(line)
-        print 'OK, Current watching:', ','.join(self.client.watching())
+        print 'OK, Current watching:', ','.join(self.watching)
 
     def complete_ignore(self, text, line, begidx, endidx):
-        tubes = self.client.watching()
+        tubes = self.watching
         if text:
             return [t for t in tubes if t.startswith(text)]
         else:
@@ -152,7 +159,7 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_watching(self, line):
-        print ','.join(self.client.watching())
+        print ','.join(self.watching)
 
     @silence
     def do_put(self, line):
