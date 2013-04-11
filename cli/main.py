@@ -68,6 +68,13 @@ class Cli(cmd.Cmd):
     def watching(self):
         return sorted(self.client.watching())
 
+    def _complete_tube(self, text, line, begidx, endidx):
+        tubes = self.tubes
+        if text:
+            return [t for t in tubes if t.startswith(text)]
+        else:
+            return tubes
+
     def do_hist(self, args):
         print(self._hist)
 
@@ -126,11 +133,7 @@ class Cli(cmd.Cmd):
         print 'OK'
 
     def complete_use(self, text, line, begidx, endidx):
-        tubes = self.tubes
-        if text:
-            return [t for t in tubes if t.startswith(text)]
-        else:
-            return tubes
+        return self._complete_tube(text, line, begidx, endidx)
 
     @silence
     def do_stats_tube(self, line):
@@ -143,7 +146,7 @@ class Cli(cmd.Cmd):
         print 'OK, Current watching:', ','.join(self.watching)
 
     def complete_watch(self, text, line, begidx, endidx):
-        return self.complete_use(text, line, begidx, endidx)
+        return self._complete_tube(text, line, begidx, endidx)
 
     @silence
     def do_ignore(self, line):
@@ -222,12 +225,12 @@ class Cli(cmd.Cmd):
             return
         print_yaml(job.stats())
 
-    def _clear_buried_job(self, tube):
+    def _clear_all(self, tube, peek_job):
         using = self.client.using()
         self.client.use(tube)
         total = 0
         while True:
-            job = self.client.peek_buried()
+            job = peek_job()
             if job is None:
                 break
             job.delete()
@@ -235,14 +238,13 @@ class Cli(cmd.Cmd):
         self.client.use(using)
         return total
 
-    @silence
-    def do_clear_buried(self, line):
+    def _do_clear(self, line, name, peek_job):
         args = line.split()
         if len(args) == 0:
-            yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.using()))
+            yes = raw_input('Clear all %s jobs in %s now? (y/N)' % (name, self.client.using()))
             if not yes == 'y':
                 return
-            total = self._clear_buried_job(self.client.using())
+            total = self._clear_all(self.client.using(), self.client.peek_job)
         else:
             force = False
             if len(args) >= 1:
@@ -250,17 +252,35 @@ class Cli(cmd.Cmd):
             if len(args) >= 2:
                 force = args[1] == '-f'
             if not force:
-                yes = raw_input('Clear all buried jobs in %s now? (y/N)' % tube)
+                yes = raw_input('Clear all %s jobs in %s now? (y/N)' % (name, tube))
                 if not yes == 'y':
                     return
-            total = self._clear_buried_job(tube)
+            total = self._clear_all(tube, self.client.peek_job)
         if total > 0:
-            print 'OK, %d buried jobs cleared!' % total
+            print 'OK, %d %s jobs cleared!' % (total, name)
         else:
-            print 'No buried jobs to be cleared now'
+            print 'No %s jobs to be cleared now' % name
+
+    @silence
+    def do_clear_buried(self, line):
+        self._do_clear(line, 'buried', self.client.peek_buried)
 
     def complete_clear_buried(self, text, line, begidx, endidx):
-        return self.complete_use(text, line, begidx, endidx)
+        return self._complete_tube(text, line, begidx, endidx)
+
+    @silence
+    def do_clear_delayed(self, line):
+        self._do_clear(line, 'delayed', self.client.peek_delayed)
+
+    def complete_clear_delayed(self, text, line, begidx, endidx):
+        return self._complete_tube(text, line, begidx, endidx)
+
+    @silence
+    def do_clear_ready(self, line):
+        self._do_clear(line, 'ready', self.client.peek_ready)
+
+    def complete_clear_ready(self, text, line, begidx, endidx):
+        return self._complete_tube(text, line, begidx, endidx)
 
 
 def main():
