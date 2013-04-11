@@ -215,11 +215,9 @@ class Cli(cmd.Cmd):
             return
         print_yaml(job.stats())
 
-    @silence
-    def do_clear_buried(self, line):
-        yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.using()))
-        if not yes == 'y':
-            return
+    def _clear_buried_job(self, tube):
+        using = self.client.using()
+        self.client.use(tube)
         total = 0
         while True:
             job = self.client.peek_buried()
@@ -227,10 +225,35 @@ class Cli(cmd.Cmd):
                 break
             job.delete()
             total += 1
+        self.client.use(using)
+        return total
+
+    @silence
+    def do_clear_buried(self, line):
+        args = line.split()
+        if len(args) == 0:
+            yes = raw_input('Clear all buried jobs in %s now? (y/N)' % str(self.client.using()))
+            if not yes == 'y':
+                return
+            total = self._clear_buried_job(self.client.using())
+        else:
+            force = False
+            if len(args) >= 1:
+                tube = args[0]
+            if len(args) >= 2:
+                force = args[1] == '-f'
+            if not force:
+                yes = raw_input('Clear all buried jobs in %s now? (y/N)' % tube)
+                if not yes == 'y':
+                    return
+            total = self._clear_buried_job(tube)
         if total > 0:
             print 'OK, %d buried jobs cleared!' % total
         else:
             print 'No buried jobs to be cleared now'
+
+    def complete_clear_buried(self, text, line, begidx, endidx):
+        return self.complete_use(text, line, begidx, endidx)
 
 
 def main():
