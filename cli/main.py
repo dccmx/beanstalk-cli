@@ -195,6 +195,9 @@ class Cli(cmd.Cmd):
     '''
     @silence
     def do_peek(self, line):
+        if line.strip() == '':
+            print 'Usage: peek id'
+            return
         job = self.client.peek(int(line))
         if job is None:
             print 'No such job'
