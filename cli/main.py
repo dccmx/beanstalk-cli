@@ -181,7 +181,9 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_stats_job(self, line):
-        if self.job is not None:
+        if line != '':
+            print_yaml(self.client.stats_job(int(line)))
+        elif self.job is not None:
             print_yaml(self.job.stats())
         else:
             print 'No job reserved now'
