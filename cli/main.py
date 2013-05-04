@@ -169,6 +169,19 @@ class Cli(cmd.Cmd):
         print self.client.put(line)
 
     @silence
+    def do_kick(self, line):
+        bound = 1 if line == '' else int(line)
+        print self.client.kick(bound)
+
+    @silence
+    def do_kick_job(self, line):
+        if line == '':
+            print 'Usage: kick_job jid'
+            return
+        jid = int(line)
+        print self.client.kick_job(jid)
+
+    @silence
     def do_reserve(self, line):
         timeout = None if line == '' else float(line)
         job = self.client.reserve(timeout)
