@@ -169,9 +169,14 @@ class Cli(cmd.Cmd):
         print self.client.put(line)
 
     @silence
+    def do_bury(self, line):
+        self.client.bury(int(line.strip()))
+
+    @silence
     def do_kick(self, line):
         bound = 1 if line == '' else int(line)
-        print self.client.kick(bound)
+        n = self.client.kick(bound)
+        print 'kicked %d jobs to ready queue' % n
 
     @silence
     def do_kick_job(self, line):
