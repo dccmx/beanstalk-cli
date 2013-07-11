@@ -130,7 +130,6 @@ class Cli(cmd.Cmd):
     def do_use(self, line):
         self.client.use(line)
         self._refresh_prompt()
-        print 'OK'
 
     def complete_use(self, text, line, begidx, endidx):
         return self._complete_tube(text, line, begidx, endidx)
