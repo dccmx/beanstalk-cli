@@ -131,21 +131,21 @@ class Cli(cmd.Cmd):
         self.client.use(line)
         self._refresh_prompt()
 
-    def complete_use(self, text, line, begidx, endidx):
-        return self._complete_tube(text, line, begidx, endidx)
+    complete_use = _complete_tube
 
     @silence
     def do_stats_tube(self, line):
         tube = self.client.using() if line == '' else line
         print_yaml(self.client.stats_tube(tube))
 
+    complete_stats_tube = _complete_tube
+
     @silence
     def do_watch(self, line):
         self.client.watch(line)
         print 'OK, Current watching:', ','.join(self.watching)
 
-    def complete_watch(self, text, line, begidx, endidx):
-        return self._complete_tube(text, line, begidx, endidx)
+    complete_watch = _complete_tube
 
     @silence
     def do_ignore(self, line):
@@ -287,22 +287,19 @@ class Cli(cmd.Cmd):
     def do_clear_buried(self, line):
         self._do_clear(line, 'buried', self.client.peek_buried)
 
-    def complete_clear_buried(self, text, line, begidx, endidx):
-        return self._complete_tube(text, line, begidx, endidx)
+    complete_clear_buried = _complete_tube
 
     @silence
     def do_clear_delayed(self, line):
         self._do_clear(line, 'delayed', self.client.peek_delayed)
 
-    def complete_clear_delayed(self, text, line, begidx, endidx):
-        return self._complete_tube(text, line, begidx, endidx)
+    complete_clear_delayed = _complete_tube
 
     @silence
     def do_clear_ready(self, line):
         self._do_clear(line, 'ready', self.client.peek_ready)
 
-    def complete_clear_ready(self, text, line, begidx, endidx):
-        return self._complete_tube(text, line, begidx, endidx)
+    complete_clear_ready = _complete_tube
 
 
 def main():
