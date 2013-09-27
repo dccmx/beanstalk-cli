@@ -255,8 +255,11 @@ class Cli(cmd.Cmd):
             job = peek_job()
             if job is None:
                 break
-            job.delete()
-            total += 1
+            try:
+                job.delete()
+                total += 1
+            except:
+                pass
         self.client.use(using)
         return total
 
