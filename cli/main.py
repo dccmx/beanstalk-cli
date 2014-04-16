@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
-import sys
+
 import argparse
-import cmd
-import readline
-import os
 import beanstalkc
+import cmd
+import os
+import readline
+import sys
+import yaml
 
 
 argparser = argparse.ArgumentParser(description='Interactive beanstalk client', conflict_handler='resolve')
@@ -36,9 +38,8 @@ def silence(func):
     return wrapper
 
 
-def print_yaml(yaml):
-    for k in sorted(yaml.keys()):
-        print '%s:%s' % (k, str(yaml[k]))
+def print_yaml(d):
+    print yaml.dump(d, default_flow_style=False)
 
 
 class Cli(cmd.Cmd):
@@ -169,13 +170,38 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_bury(self, line):
-        self.client.bury(int(line.strip()))
+        jid = int('0' + line.strip())
+        jid = jid or (self.job.jid if self.job else None)
+        if not jid:
+            print 'No job specified.'
+
+        print self.client.bury(jid)
+
+    @silence
+    def do_release(self, line):
+        jid = int('0' + line.strip())
+        jid = jid or (self.job.jid if self.job else None)
+        if not jid:
+            print 'No job specified.'
+
+        print self.client.release(jid)
 
     @silence
     def do_kick(self, line):
         bound = 1 if line == '' else int(line)
         n = self.client.kick(bound)
         print 'kicked %d jobs to ready queue' % n
+
+    @silence
+    def do_body(self, line):
+        if line.strip():
+            print '** THIS PRINTS CURRENT RESERVED JOB **'
+            return
+
+        if not self.job:
+            print 'No current job.'
+        else:
+            print self.job.body
 
     @silence
     def do_kick_job(self, line):
