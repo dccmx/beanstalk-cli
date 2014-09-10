@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='beanstalk-cli',
-    version='0.4.1',
+    version='0.5.0',
     license='MIT',
     description='Interactive client for beanstalk',
     author='dccmx@dccmx.com',
