@@ -118,14 +118,17 @@ class Cli(cmd.Cmd):
 
     @silence
     def do_tubes(self, line):
-        for t in self.tubes:
+        tubes = self.tubes
+        width = max([len(t) for t in tubes])
+        for t in tubes:
             tube_stat = self.client.stats_tube(t)
-            ts = '(buried: %d, delayed: %d, ready: %d, reserved: %d, urgent: %d)' % (tube_stat['current-jobs-buried'],
+            format_str = '%%%ds (buried: %%d, delayed: %%d, ready: %%d, reserved: %%d, urgent: %%d)' % width
+            ts =  format_str % (t, tube_stat['current-jobs-buried'],
                                                                                      tube_stat['current-jobs-delayed'],
                                                                                      tube_stat['current-jobs-ready'],
                                                                                      tube_stat['current-jobs-reserved'],
                                                                                      tube_stat['current-jobs-urgent'])
-            print t, ts
+            print ts
 
     @silence
     def do_use(self, line):

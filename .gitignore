@@ -3,3 +3,6 @@
 *.swp
 build/
 dist/
+bin/
+include/
+lib/
